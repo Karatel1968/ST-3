@@ -1,7 +1,8 @@
 // Copyright 2021 GHA Test Team
-#include "../include/TimedDoor.h"
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
+
+#include "../include/TimedDoor.h"
 
 int main() {
     try {
