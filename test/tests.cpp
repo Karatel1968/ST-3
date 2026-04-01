@@ -1,49 +1,53 @@
 // Copyright 2021 GHA Test Team
-
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-#include <cstdint>
-#include "TimedDoor.h"
+
+#include "../include/TimedDoor.h"
+
 #include <thread>
 #include <chrono>
 
+// Mock TimerClient for testing
 class MockTimerClient : public TimerClient {
-public:
-    MOCK_METHOD(void, Timeout, (), (override));
+ public:
+    MOCK_METHOD(void, Timeout(), (override));
 };
 
+// Test fixture for TimedDoor
 class TimedDoorTest : public ::testing::Test {
-protected:
+ protected:
     void SetUp() override {
         door = new TimedDoor(2);
         adapter = new DoorTimerAdapter(*door);
     }
-    
+
     void TearDown() override {
         delete door;
         delete adapter;
     }
-    
+
     TimedDoor* door;
     DoorTimerAdapter* adapter;
 };
 
+// Test fixture for Timer
 class TimerTest : public ::testing::Test {
-protected:
+ protected:
     void SetUp() override {
         timer = new Timer();
         mockClient = new MockTimerClient();
     }
-    
+
     void TearDown() override {
         delete timer;
         delete mockClient;
     }
-    
+
     Timer* timer;
     MockTimerClient* mockClient;
 };
 
+// Tests for TimedDoor
 TEST_F(TimedDoorTest, DoorInitiallyClosed) {
     EXPECT_FALSE(door->isDoorOpened());
 }
@@ -88,18 +92,19 @@ TEST_F(TimedDoorTest, MultipleUnlockLockOperations) {
     EXPECT_FALSE(door->isDoorOpened());
 }
 
+// Integration tests with Timer
 class TimedDoorIntegrationTest : public ::testing::Test {
-protected:
+ protected:
     void SetUp() override {
         door = new TimedDoor(1);
         timer = new Timer();
     }
-    
+
     void TearDown() override {
         delete door;
         delete timer;
     }
-    
+
     TimedDoor* door;
     Timer* timer;
 };
@@ -107,7 +112,7 @@ protected:
 TEST_F(TimedDoorIntegrationTest, TimerTriggersTimeoutOnOpenDoor) {
     door->unlock();
     DoorTimerAdapter adapter(*door);
-    
+
     EXPECT_THROW({
         timer->tregister(door->getTimeOut(), &adapter);
     }, std::runtime_error);
@@ -116,7 +121,7 @@ TEST_F(TimedDoorIntegrationTest, TimerTriggersTimeoutOnOpenDoor) {
 TEST_F(TimedDoorIntegrationTest, TimerDoesNotTriggerOnClosedDoor) {
     door->lock();
     DoorTimerAdapter adapter(*door);
-    
+
     EXPECT_NO_THROW({
         timer->tregister(door->getTimeOut(), &adapter);
     });
@@ -125,7 +130,7 @@ TEST_F(TimedDoorIntegrationTest, TimerDoesNotTriggerOnClosedDoor) {
 TEST_F(TimedDoorIntegrationTest, DoorStateChangesAfterTimeout) {
     door->unlock();
     DoorTimerAdapter adapter(*door);
-    
+
     try {
         timer->tregister(door->getTimeOut(), &adapter);
     } catch (const std::runtime_error& e) {
@@ -133,9 +138,10 @@ TEST_F(TimedDoorIntegrationTest, DoorStateChangesAfterTimeout) {
     }
 }
 
+// Tests with MockTimerClient
 TEST_F(TimerTest, TregisterCallsTimeoutOnClient) {
     EXPECT_CALL(*mockClient, Timeout()).Times(1);
-    
+
     std::thread t([this]() {
         timer->tregister(0, mockClient);
     });
@@ -148,37 +154,40 @@ TEST_F(TimerTest, TregisterHandlesNullClient) {
     });
 }
 
+// Additional tests for different timeout values
 TEST_F(TimedDoorTest, DifferentTimeoutValues) {
     TimedDoor shortDoor(1);
     TimedDoor longDoor(5);
-    
+
     EXPECT_EQ(shortDoor.getTimeOut(), 1);
     EXPECT_EQ(longDoor.getTimeOut(), 5);
-    
+
     shortDoor.unlock();
     longDoor.unlock();
-    
+
     DoorTimerAdapter shortAdapter(shortDoor);
     DoorTimerAdapter longAdapter(longDoor);
-    
+
     EXPECT_THROW(shortAdapter.Timeout(), std::runtime_error);
     EXPECT_THROW(longAdapter.Timeout(), std::runtime_error);
 }
 
+// Test multiple adapters same door
 TEST_F(TimedDoorTest, MultipleAdaptersSameDoor) {
     DoorTimerAdapter adapter1(*door);
     DoorTimerAdapter adapter2(*door);
-    
+
     door->unlock();
-    
+
     EXPECT_THROW(adapter1.Timeout(), std::runtime_error);
     EXPECT_THROW(adapter2.Timeout(), std::runtime_error);
 }
 
+// Test door operations after timeout
 TEST_F(TimedDoorIntegrationTest, DoorCanBeClosedAfterTimeout) {
     door->unlock();
     DoorTimerAdapter adapter(*door);
-    
+
     try {
         timer->tregister(door->getTimeOut(), &adapter);
     } catch (const std::runtime_error&) {
