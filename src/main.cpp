@@ -1,6 +1,6 @@
 // Copyright 2021 GHA Test Team
-#include "../include/TimedDoor.h"
 
+#include "../include/TimedDoor.h"
 #include <iostream>
 #include <stdexcept>
 

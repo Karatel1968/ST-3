@@ -1,16 +1,16 @@
 // Copyright 2021 GHA Test Team
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <chrono>
+#include <thread>
 
 #include "../include/TimedDoor.h"
-
-#include <thread>
-#include <chrono>
 
 // Mock TimerClient for testing
 class MockTimerClient : public TimerClient {
  public:
-    MOCK_METHOD(void, Timeout(), (override));
+    MOCK_METHOD(void, Timeout, (), (override));
 };
 
 // Test fixture for TimedDoor

@@ -1,8 +1,10 @@
 // Copyright 2021 GHA Test Team
+
 #include "../include/TimedDoor.h"
-#include <thread>
+
 #include <chrono>
 #include <stdexcept>
+#include <thread>
 
 // DoorTimerAdapter implementation
 DoorTimerAdapter::DoorTimerAdapter(TimedDoor& d) : door(d) {}
