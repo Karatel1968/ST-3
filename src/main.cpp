@@ -1,6 +1,7 @@
 // Copyright 2021 GHA Test Team
 
 #include "../include/TimedDoor.h"
+
 #include <iostream>
 #include <stdexcept>
 
@@ -28,7 +29,6 @@ int main() {
 
         std::cout << "Timer completed, door was closed in time"
                   << std::endl;
-
     } catch (const std::exception& e) {
         std::cout << "Exception caught: " << e.what() << std::endl;
     }
